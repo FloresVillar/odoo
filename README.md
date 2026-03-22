@@ -98,3 +98,4 @@ nginx, odoo container, Postgresl container
 ## Proyecto
 Por sugerencia de gpt y gemini, lo ideal es comenzar con un Sistema de ventas + inventario
 
+
