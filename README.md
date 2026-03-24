@@ -95,6 +95,8 @@ VPS, digitalOcean,AWS, GoogleCloud
 
 nginx, odoo container, Postgresl container
 
+**Para un rigor terorico revisar la evolucion del changelog**
+
 ## Proyecto
 Por sugerencia de gpt y gemini, lo ideal es comenzar con un Sistema de ventas + inventario
 

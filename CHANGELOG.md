@@ -163,14 +163,58 @@ En linux, los nombre de usuario son solo etiquetas, lo relevante es el ID numeri
 
 **Editando scripts**
 
-Precisado la teoria se procede a editar los archivos 
+Precisando la teoria general se procede a editar los archivos, los cuales a su vez , tienen teoria muy interesante.
 
+## RELACIONES
 
+**Muchos a Uno**
 
+Los campos **fields** seran las columnas de nuestra tabla, la relacion se define mediante **fields.Many2one** o **fields.One2many**.  
 
+**fields.Many2one** en la linea **cliente_id = fields.Many2one()** es una clave foranea (Foreign key) SQL. Define que muchos registros de la tabla ACTUAL apuntan a uno solo de otra tabla
+```bash
+#El ejemplo es totalmente referencial
+#la tabla actual Colegio.cursos 
+id (Curso)	name (Título)	 entre otros fields...
+1	        Física Cuántica	 
+2	        Relatividad	 
+3	        Electricidad	 
+# la otra tabla profesores (en el caso del codigo es res.partner es la tabla que odoo crea , tambien se puede agregar resgistros desde la ui , pagina web)
+id	        name
+10	        Prof. Einstein
+11	        Prof. Tesla
+#entonces profesor_id =  fields.Many2one('colegio.profesores') crea la columna profesor_id como una clave foranea, de modo que : muchos cursos * --- 1 profesor
+id (Curso)	name (Título)	profesor_id (FK)
+1	        Física Cuántica	    10
+2	        Relatividad	        10
+3	        Electricidad	    11
+```
+En el caso del codigo **cliente_id = fields.Many2one('res.partner',String="Cliente")** crea(en SQL) la columna  cliente_id de modo que los registros (filas) de la tabla Venta , tendran el id de un cliente una o varias veces por cada fila. 
+Un detalle más, la etiqueta **Cliente** tiene un fin visual para la interfaz de usuario(la pagina web).
 
+Una convencion util es declarar el nombre de ese fields con un **_id**, esto es un estandar para que este campo sea reconocido como una RELACION y no un campo (texto) mas.
 
+vale la pena profundizar **res.partner** .<br>
+Una de las ventajas de odoo es que un ERP , viene con un nucleo de tablas preinstaladas, Clientes, Proveedores, Empresas, Personas Fisicas . Tal como se menciono esto puede editarse desde la web de odoo.
 
+Dichas tablas usamos aunque lo las declaramos antes, merced al script **__manifest__.py** , donde **'depends: ['base']'** el modulo base crea la tabla **res_partner** en postgreSQL en cuanto se instala odoo.El ORM de odoo luego busca esa tabla.La tabla desde el cual se referencia tenga un registro con un valor de la columna, que es el **id** de la tabla **res_partner**.
+
+Ahora bien esta logica se ejecuta en **web** contenedor odoo, pero qué del contenedor **db** postgresql. Docker crea el servidor de base de datos(db) , al arrancar se crea una base de datos normalmente llamada **postgres** o el nombre detallado en **db : enviroment: POSTGRES_DB=postgres**.
+Cuando entramos a **localhost:8069** se edita un formulario, quee al ser creado mediante **create badatase** el codigo de python en odoo envia el comando SQL a db para crea esa base de datos.
+
+```bash
+    # odoo-db-1 es el nombre del contenedor
+    # psql es el programa cliente que vive dentro del contenedor
+    # odoo es el usuario odoo 
+    # postgres es el nombre de la base de datos
+    docker exec -it odoo-db-1 psql -U odoo -d postgres
+    # ya dentro del contenedor,listamos las bases de datos
+    \l   
+```
+
+**Uno a Muchos**
+
+La siguiente linea a analizar es **lineas_id = fields.One2many('venta.ventas.linea','venta_id',string="Lineas")**
 
 
  
