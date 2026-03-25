@@ -203,6 +203,7 @@ Ahora bien esta logica se ejecuta en **web** contenedor odoo, pero qué del cont
 Cuando entramos a **localhost:8069** se edita un formulario, quee al ser creado mediante **create badatase** el codigo de python en odoo envia el comando SQL a db para crea esa base de datos.
 
 ```bash
+    # contenedor de la base de datos
     # odoo-db-1 es el nombre del contenedor
     # psql es el programa cliente que vive dentro del contenedor
     # odoo es el usuario odoo 
@@ -214,9 +215,36 @@ Cuando entramos a **localhost:8069** se edita un formulario, quee al ser creado 
 
 **Uno a Muchos**
 
-La siguiente linea a analizar es **lineas_id = fields.One2many('venta.ventas.linea','venta_id',string="Lineas")**
+La siguiente linea a analizar es **lineas_id = fields.One2many('venta.ventas.linea','venta_id',string="Lineas")**. La relación muchos a uno es casi intuitivo ; la relacion uno a muchos es un tanto mas demandante.Es preciso entender el negocio. 
+
+En el modelo:  Venta(padre) → VentaLinea(hijos) . Venta es el padre pues representa una transaccion completa **venta 001 (cliente: Juan)** , mientras que VentaLinea es el detalle de la venta **VentaLinea 1 → Laptop   VentaLinea 2 ☻6 Mouse** 
+
+El ejemplo proporcionado por gpt es siempre muy clarificante
+
+```bash
+# TICKET DE VENTA
+Cliente : Juan
+
+Items:
+- Laptop x1  1000
+- Mouse  x2  100
+
+TOTAL: 1100
+
+#VENTA(padre)
+id = 1 
+cliente = Juan
+total = 1100
+
+#VentaLinea (hijo)
+id = 1   laptop
+id = 2   Mouse
+```
+Como se ve VentaLinea por si solo no tiene sentido por si sola. 
+
+Algunos modelos estandar en ERP's **factura → lineas de factura** , **Pedido → Lineas de pedido** , **Compra → Lineas de compra**. <br>
+De  modo que la FK venta_id = fields.Many2one('ventas.venta') , pues de este modo se indica quee cada lineaventa pertenece a tal o cual venta.
 
 
- 
 
 
