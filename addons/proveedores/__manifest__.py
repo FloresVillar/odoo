@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "clientes",
+    'name': "proveedores",
 
     'summary': "Short (1 phrase/line) summary of the module's purpose",
 

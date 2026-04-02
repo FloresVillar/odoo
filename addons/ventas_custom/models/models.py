@@ -5,7 +5,6 @@ from odoo import models, fields, api
 class Venta(models.Model):
     _name = 'ventas.venta'
     _description = 'registro de ventas'
-
     name = fields.Char(String='Codigo',required=True)
     cliente_id = fields.Many2one('res.partner',string="Cliente")     # muchas ventas por un solo cliente
     #value2 = fields.Float(compute="_value_pc", store=True)
@@ -19,8 +18,8 @@ class Venta(models.Model):
             venta.total = sum(linea.subtotal for linea in venta.lineas_ids)
 #-----LINEA VENTA------------------------------------------
 class VentaLinea(models.Model):
-    _name = ""
-    _description = ""
+    _name = "ventas.venta.linea"
+    _description = "Linea de venta" # cada linea en la boleta de venta
     venta_id = fields.Many2one('ventas.venta',string="Venta")
     producto = fields.Char(string="Producto") 
     precio =  fields.Float(string="Precio")
