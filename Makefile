@@ -2,7 +2,7 @@ NAME?=mi_modulo
 CONTAINER_WEB?=odoo-web-1
 CONTAINER_DB?=odoo-db-1
 
-.PHONY: up permisos scaffold rebuild logs
+.PHONY: up permisos scaffold rebuild logs restart
 
 up: 
 	docker compose up -d  
@@ -28,3 +28,6 @@ logs:
 rebuild: 
 	docker compose down 
 	docker compose up -d
+
+restart:
+	docker compose restart

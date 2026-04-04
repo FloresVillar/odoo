@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ventas_custom_ventas_custom,ventas_custom.ventas_custom,model_ventas_custom_ventas_custom,base.group_user,1,1,1,1
+access_ventas_custom_ventas_venta,ventas.venta,model_ventas_venta,base.group_user,1,1,1,1
+access_ventas_custom_ventas_venta_linea,ventas.venta.linea,model_ventas_venta_linea,base.group_user,1,1,1,1

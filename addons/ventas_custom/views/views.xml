@@ -1,28 +1,30 @@
 <odoo>
   <data>
     <!-- explicit list view definition -->
-<!--
-    <record model="ir.ui.view" id="ventas_custom.list">
+
+    <record model="ir.ui.view" 
+            id="ventas_custom.list">
       <field name="name">ventas_custom list</field>
-      <field name="model">ventas_custom.ventas_custom</field>
+      <field name="model">ventas.venta</field>
       <field name="arch" type="xml">
         <tree>
           <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
+          <field name="cliente_id"/> 
+          <field name="total"/>
         </tree>
       </field>
     </record>
--->
+
 
     <!-- actions opening views on models -->
-<!--
-    <record model="ir.actions.act_window" id="ventas_custom.action_window">
-      <field name="name">ventas_custom window</field>
-      <field name="res_model">ventas_custom.ventas_custom</field>
+
+    <record model="ir.actions.act_window" 
+            id="ventas_custom.action_window">
+      <field name="name">Ventas</field>
+      <field name="res_model">ventas.venta</field>
       <field name="view_mode">tree,form</field>
     </record>
--->
+
 
     <!-- server action to the one above -->
 <!--
@@ -41,20 +43,31 @@
 -->
 
     <!-- Top menu item -->
-<!--
-    <menuitem name="ventas_custom" id="ventas_custom.menu_root"/>
--->
+
+    <menuitem name="ventas_custom" 
+               id="ventas_custom.menu_root"/>
+
     <!-- menu categories -->
-<!--
-    <menuitem name="Menu 1" id="ventas_custom.menu_1" parent="ventas_custom.menu_root"/>
-    <menuitem name="Menu 2" id="ventas_custom.menu_2" parent="ventas_custom.menu_root"/>
--->
+
+    <menuitem name="Menu 1" 
+              id="ventas_custom.menu_1" 
+              parent="ventas_custom.menu_root"/>
+    
+    <menuitem name="Menu 2" 
+              id="ventas_custom.menu_2" 
+              parent="ventas_custom.menu_root"/>
+
     <!-- actions -->
-<!--
-    <menuitem name="List" id="ventas_custom.menu_1_list" parent="ventas_custom.menu_1"
+
+    <menuitem name="List" 
+              id="ventas_custom.menu_1_list" 
+              parent="ventas_custom.menu_1"
               action="ventas_custom.action_window"/>
-    <menuitem name="Server to list" id="ventas_custom" parent="ventas_custom.menu_2"
+<!--    
+    <menuitem name="Server to list" 
+              id="ventas_custom" 
+              parent="ventas_custom.menu_2"
               action="ventas_custom.action_server"/>
--->
+  -->
   </data>
 </odoo>

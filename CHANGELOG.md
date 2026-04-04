@@ -327,8 +327,172 @@ De modo que usamos esta convencion por claridad **ventas.venta.linea** muestra e
 Precisemos el uso de postgres en el ecosistema de ODOO.Esto se realizará de modo iterativo , valga la redundancia (-it).<br>
 Entramos al contenedor de la base de datos **docker exec -it odoo-db-1 /bin/bash**. Dentro de ella nos conectamos a la base de datos declarado en el manifiesto **environment: POSTGRES_DB: postgres**. Entonces psql -
 
+**Problemas con el admin_pass**
+
+La ui de odoo en localhost:8069 no reconocia el admin_passwd generado y hasheado en el conteneddor odoo. Se intento modificar el archivo /etc/odoo/odoo.conf via **sed '||'** , no funciono. De modo que en lugar de intentar modificar ese archivo nuevamente, pues al ejecutar docker compose restart , odoo hashea nuevamente dicha contraseña, lo cual genera una inconsistencia.<br>
+Luego lo que  se hace es montar un volumnen, **volumes: ./config:/etc/odoo/odoo.conf** en el servicio web. El contenido de ./config/odoo.conf en nuestro host es la que usara odoo, evitando la configuracion predeterminada.
+
+Lo cual resuelve la autenticacion.Ello resuelto se procede a detallar con profundidad **ventas_custom/__manifest.py**. Este archivo es un diccionario de python. Odoo implementa algo como <br>
+**sistema de modulos = grafo de dependencias + metadata declarativa**<br>
+Que es tu modulo y como se integra al sistema.Cuando odoo arranca o actualiza escane **addons_path** encuentra **__manifest__.py** lo evaua y construye el grafo de dependencias , decidiendo luego el orden de carga.
+
+El contenido son pares claves-valor 
+- La metadata es la informacion que no afecta la logica **'name' , 'summary', 'description'..**.
+
+- Dependencias **'depends':['base']**. Esto define un grafo dirigido **ventas_custom → base**. Instala primero base luego el modulo propio y nos da acceso a sus modulos.
+
+- Datos **'data':[...]** es una lista de scripts declarativos, odoo los ejecuta en orden **.csv** para permisos, **views.xml** para vistas y acciones, **templates.xml** QWeb fronted. Odoo usa un modelo ACL (access control list) de modo que se define quien puede leer , escribir, crear y eliminar definido en security/ir.model.access.csv.
+
+```bash
+'data': [
+        'security/ir.model.access.csv',
+        'views/views.xml',
+        'views/templates.xml',
+    ],
+```
+- flags de comportamiento  **'installable': True** Si es False odoo ignora el modulo, **'application': True** aparece como una app principal.
+
+- Demo data **'demo':['demo/demo.xml']** para ver el demo
+
+Odoo usa este principio arquitectonico : **declarative modular system** , para desacoplar, para un orden automatico de carga .
+La analogia seria : **__manifest__.py = packeges.json(Node) + migrations(DB) + metadata**.
+
+```bash
+                ┌──────────────────────────┐
+                │   __manifest__.py        │
+                │ (metadata + depends)    │
+                └──────────┬──────────────┘
+                           │
+                           ▼
+        ┌─────────────────────────────────────┐
+        │  Resolver dependencias (GRAFO)      │
+        │  topological sort                  │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  Orden de instalación de módulos    │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  IMPORTAR CÓDIGO PYTHON             │
+        │  (__init__ → models.py)             │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  REGISTRY (ORM)                    │
+        │  - registrar modelos (_name)       │
+        │  - registrar fields                │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  SINCRONIZAR BASE DE DATOS          │
+        │  - crear tablas                    │
+        │  - alterar columnas                │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  EJECUTAR 'data' (XML/CSV)          │
+        │  (EN ORDEN DEFINIDO)               │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  SEGURIDAD (ACL + rules)            │
+        │  ir.model.access.csv               │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  VISTAS (XML)                       │
+        │  form / tree / actions              │
+        └──────────┬──────────────────────────┘
+                   │
+                   ▼
+        ┌─────────────────────────────────────┐
+        │  MÓDULO LISTO EN UI                 │
+        └─────────────────────────────────────┘
+```
+
 ## VIEWS
+Un parafraseo por gpt. **Un modelo no aparece en la UI por existir sino que aparece porque se conecta explicitmente**, de la siguiente manera.
+
+```bash
+models.py
+   │
+   ▼
+(ir.model)  ← ORM registra modelo
+   │
+   ▼
+VISTA (XML: form / tree)
+   │
+   ▼
+ACCIÓN (ir.actions.act_window)
+   │
+   ▼
+MENÚ (ir.ui.menu)
+   │
+   ▼
+ INTERFAZ ODOO
+```
+**models.py** define la estructura (tabla + campos) pero aun no hay ui. Entonces definimos 
+- vistas(record id ="" model ="" representacion declarativa del modelo)
+- acciones(record id="" model="" instruccion de navegacion, **cuando alguien haga clic, abre este modelo con estas vistas**)
+- menu (menu = punto de entrada en la ui)
+
+Un resumen intuitivo util 
+```bash
+models.py == que es
+views.xml == como se ve
+action == como se abre
+menu == como llegas
+```
+Tambien es importante el orden en el __manifest__.py , primero los permisos **'security/ir.model.access.csv'** y luego las vistas **'views/views.xml'**
+
+El archivo **ventas_custom/views/views.xml** ; un archivo xml en odoo no es solo para diseño , es un archivo que carga datos. Cada vez que se instala o actualiza algo , odoo lee el xml y "traduce" las etiquetas a filas en sus tablas internas.
+
+- **<odoo>** Es la etiqueta raiz que envuelve todo<br>
+- **<data>** Indica que que los registros son para la base de datos<br>
+- **<record>** Define un nuevo registro , este tiene dos atributos clave. **MODEL** indica en que tabla interna de odoo se guardara este diseño **ir.ui.view** para vistas, **ir.actions.act_windows** para acciones.Mientras que **ID** es un identificador unico XML ID , que sirve para que otros archivos puedan referenciar este registro sin conocer su ID numerico de la base de datos,es arbitrario.
+
+- **<field** Define el valor de una columna especifica para ese registro
 
 
+Mientras que **menuitem** es el puente final, es un acceso directo (shorthand) que odoo nos da en el xml para insertar filas en esas tablas sin tener que escribir toda la estructura de un **<record>**.Pues los menus no son archivos de configuracion estaticos, sino registros en una tabla de la base de datos **ir.ui.menu**. <br>
+Odoo organiza los menus como un arbol.
+
+- Menu raiz (root) **<menuitem id="menu_root" name="Ventas.."** ,sin parent , en la UI es el icono que aparece en "app switcher" es la puerta a la aplicacion
+
+- La categoria(folder) **<menuitem id="menu_1" name="operaciones" parent="menu_root"** en la UI una vez que se entra a la app , se ve una barra horizontal morada, con un texto **operaciones** , si se hace clic se despliega como una lista (como una carpeta)
+
+- La accion (leaf/boton) **<menuitem id="menu_list" name="listado" parent="menu_1" action="action_id"** En la ui es la opcion final dentro del desplegable de operaciones. cuando se hace clic aqui, es cuando odoo ejecuta **res_model** y nos muestra la tabla con los datos de **models.py**
 
 
+- Categorias (folders) 
+El nexo con nuestro **models/models.py** es **res_model** (resource model), este campo no esta en un archivo python sino que es un campo de una tabla interna de odoo **ir.actions.act_window**.
+
+Luego cuando se hace clic en un menu, odoo busca una accion de Ventana.Esa accion es la que le dice al navegador "Ve a la base de datos , busca la tabla de este modelo y muestrame sus datos". En xml esta accion se define en **<record model="ir.actions.act_window"..**. El valor debe ser exactamente el **_name** de nuestro **models.py**. En este caso el nombre del modulo es **_name = 'ventas.venta'** , en el XML el res_model es **ventas.venta**
+
+
+## security/ir.model.access.csv 
+Este archivo define los permisos de acceso a nivel de modelo. Odoo implementa ACL + record rules, este csv pertenece a la primera capa ACL. 
+
+El separador(en este caso ) es un **,** de modo que las columnas se definen en la primera fila:
+- **id** External ID de la regla, nombre unico para la regla, se suele usar **access_** seguido del nombre del modelo. En este caso seria access_ventas_custom_venta
+
+- **name** un titulo para la regla (puede ser el nombre del modelo)
+
+- **model_id** ID: critico, debe ser **model_** seguido del **_name** de nuestra clase en models.py cambiando los puntos por guiones bajos, en este caso model_ventas_venta 
+
+- **group_id** id: el grupo de usarios normalmente **base.group_user**
+
+- Permisos (1,1,1,1) cuatro columnas de si o no para (ver, editar, crear, borrar)
+
+Ademas, en odoo cada tabla de la base de datos es un mundo independiente, cada uno necesita su propios permisos. En este proyecto se tiene Venta y VentaLinea 
+
+
+modificado estos scripts se ejecuta **docker compose restart** y en **localhost:8069** activando en settings el modo desarrollo , luego buscando en app **ventas_custom**, damos clic a activate y luego a new.
