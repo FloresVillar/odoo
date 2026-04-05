@@ -6,11 +6,11 @@ class Venta(models.Model):
     _name = 'ventas.venta'
     _description = 'registro de ventas'
     name = fields.Char(String='Codigo',required=True)
-    cliente_id = fields.Many2one('res.partner',string="Cliente")     # muchas ventas por un solo cliente
+    cliente_id = fields.Many2one('res.partner',string="Cliente")     # muchos registros de la tabla actual ←→ un registro de la otra tabla
     #value2 = fields.Float(compute="_value_pc", store=True)
     fecha = fields.Date(string="Fecha")
     #description = fields.Text()
-    lineas_ids = fields.One2many('ventas.venta.linea','venta_id',string="Lineas")
+    lineas_ids = fields.One2many('ventas.venta.linea','venta_id',string="Lineas") # un registro de tabla actual ←→ muchos de la otra tabla
     total = fields.Float(string="Total",compute="_compute_total")
     @api.depends('lineas_ids.subtotal')
     def _compute_total(self):

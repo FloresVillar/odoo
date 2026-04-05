@@ -15,7 +15,26 @@
       </field>
     </record>
 
-
+  <record model="ir.ui.view" id="ventas_custom.form">
+    <field name="model">ventas.venta</field>
+    <field name="arch" type="xml">
+        <form>
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    <field name="cliente_id"/>
+                    <field name="fecha"/> </group>
+                <notebook>
+                    <page string="Líneas de Venta">
+                        <field name="lineas_ids"/> </page>
+                </notebook>
+                <group class="oe_subtotal_footer">
+                    <field name="total"/>
+                </group>
+            </sheet>
+        </form>
+    </field>
+</record>  
     <!-- actions opening views on models -->
 
     <record model="ir.actions.act_window" 

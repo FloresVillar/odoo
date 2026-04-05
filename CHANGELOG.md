@@ -495,4 +495,44 @@ El separador(en este caso ) es un **,** de modo que las columnas se definen en l
 Ademas, en odoo cada tabla de la base de datos es un mundo independiente, cada uno necesita su propios permisos. En este proyecto se tiene Venta y VentaLinea 
 
 
-modificado estos scripts se ejecuta **docker compose restart** y en **localhost:8069** activando en settings el modo desarrollo , luego buscando en app **ventas_custom**, damos clic a activate y luego a new.
+modificado estos scripts se ejecuta **docker compose restart** y en **localhost:8069** activando en settings el modo desarrollo , luego buscando en app **ventas_custom**, damos clic a activate y luego a new.Procediendo entonces a crear las filas instancia de la clase /entidad/tabla venta. La base de datos es ventas_custom , pero en postgres es postgres(precisar  esto)
+
+## ui odoo :8069
+<p align = center>
+    <img src="imagenes/ui_odoo.png" width="80%">
+</p>
+
+Esta es la UI, el modulo figura en la parte superior, en este caso es ventas_custom, la tabla(entidad/clase) Ventas es la principal , con 3 campos (fields/columnas)name, fecha y cliente.Definidos tanto en **models.py** y en **views.xml** , un detalle importante es resaltar la correspondencia entre ambos archivos.
+
+**models.py** define la estructura( el que ) y **views.xml** define la interfaz (el como).<br>
+### conexion por el nombre del modelo
+Odoo busca que el **model** en el XML coincida con el **_name** en models.py.<br>
+**_name = 'ventas.venta'** <br> 
+
+En **vistas**<br>
+< field name = "model">ventas.venta < / field> 
+
+En **acciones**<br>
+< field name="res_model" > ventas.venta < / field >
+
+### la equivalencia de los campos (fields)
+
+name = fields.Cahr(...)   < field name="name"><br>
+
+fecha = fields.Date(...) < field name="fecha" > <br>
+
+linea_ids = field.One2many(...)  < field name="linea_ids"> <br>
+
+En el xml, el orden de los fields determina el orden en la ui. 
+
+Ahora repecto a la vistas. En ventas_custom se ve la pantalla con las columnas Name, Cliente, Total.Ventas_custom en la parte superior corresponde a < menuitem name="Ventas_custom" > este no tiene padre.
+
+Los otros menus son Menu 1 y Menu 2 con **ventas_custom** como padre
+
+Finalmente para que podamos haccer clic en estos menuitem , se definen las acciones mediante **ventas_custom.action_window**.
+### vistas
+- Tree : La vista (**ir.ui.view** name="model" > ventas.venta < ) < **tree** > Es la vista para la entidad Ventas. Es lo primero que vemos al entrar al modulo, tiene por objetivo que se pueda ver muchas ventas al mismo tiempo o buscar una especifica
+
+- Form : La vista (**ir.ui.view** name="model" > ventas.venta < ) < **form** > Es la vista para la entidad VentasLinea.Se abre al hacer click a NEW , luego de esto se puede editar y agregar las lineas de la venta.Las etiquetas < group > < notebook > < page > se usan para organizar la informacion.
+
+Trabajan juntas gracias a **< record model="ir.actions.act_windows" id ="" > < field name="view_mode" > tree,form < / field >** .Odoo interpreta esta orden en modo **explorador ( tree )** y en modo **escritorio ( form )**.
