@@ -18,7 +18,7 @@
   <record model="ir.ui.view" id="ventas_custom.form">
     <field name="model">ventas.venta</field>
     <field name="arch" type="xml">
-        <form>
+        <form> 
             <sheet>
                 <group>
                     <field name="name"/>
@@ -26,11 +26,30 @@
                     <field name="fecha"/> </group>
                 <notebook>
                     <page string="Líneas de Venta">
-                        <field name="lineas_ids"/> </page>
-                </notebook>
+                        <field name="lineas_ids"> 
+                          <tree editable="bottom">
+                            <field name="producto"/>
+                            <field name="cantidad"/>
+                            <field name="precio"/>
+                            <field name="subtotal"/>
+                          </tree> 
+                        </field>   
+                    </page>
+                </notebook> 
                 <group class="oe_subtotal_footer">
                     <field name="total"/>
-                </group>
+                </group> 
+                <group col="6">
+                    <group colspan="4">
+                        </group>
+                    <group colspan="2">
+                        <button name="registrar_venta"
+                                string="Registrar"
+                                type="object"
+                                class="btn-primary"
+                                icon="fa-save"/>
+                    </group>
+                </group> 
             </sheet>
         </form>
     </field>

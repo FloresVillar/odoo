@@ -2,7 +2,7 @@ NAME?=mi_modulo
 CONTAINER_WEB?=odoo-web-1
 CONTAINER_DB?=odoo-db-1
 
-.PHONY: up permisos scaffold rebuild logs restart
+.PHONY: up permisos scaffold rebuild logs restart upgrade
 
 up: 
 	docker compose up -d  
@@ -31,3 +31,6 @@ rebuild:
 
 restart:
 	docker compose restart
+
+upgrade:
+	docker exec odoo-web-1 odoo -u ventas_custom -d aaaaaaaaaaaaaaa --stop-after-init

@@ -16,6 +16,10 @@ class Venta(models.Model):
     def _compute_total(self):
         for venta in self:
             venta.total = sum(linea.subtotal for linea in venta.lineas_ids)
+    def registrar_venta(self):
+        # logica que se ejecuta ...
+        print("Venta registrada")
+        return True
 #-----LINEA VENTA------------------------------------------
 class VentaLinea(models.Model):
     _name = "ventas.venta.linea"
