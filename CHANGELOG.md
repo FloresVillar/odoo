@@ -536,3 +536,20 @@ Finalmente para que podamos haccer clic en estos menuitem , se definen las accio
 - Form : La vista (**ir.ui.view** name="model" > ventas.venta < ) < **form** > Es la vista para la entidad VentasLinea.Se abre al hacer click a NEW , luego de esto se puede editar y agregar las lineas de la venta.Las etiquetas < group > < notebook > < page > se usan para organizar la informacion.
 
 Trabajan juntas gracias a **< record model="ir.actions.act_windows" id ="" > < field name="view_mode" > tree,form < / field >** .Odoo interpreta esta orden en modo **explorador ( tree )** y en modo **escritorio ( form )**.
+
+Luego de modificar los scripts relanzamos los contenedores 
+```bash
+make restart
+```
+Y  en ui odoo , el modulo ventas_custom se elige **upgrade**
+
+Luego de ello se puede editar con facilidad, tanto el ver las ventas como agregar una nueva.
+
+Resumiendo , < record model="ir.ui.view" > ... < tree> < field name="name"> < field name="cliente"> < field name="total" > con los campos es la informacion visual de los campos de la entidad(tabla) ventas. Luego al presionar **new** se ejecuta la segunda vista < form > < sheet > < group > < field name="name"> < field name="cliente" > < field name="fecha" > de la entidad/tabla Venta. Esto nos permite ingresar los datos generales de la venta, ahora para ingresar la informacion de dicha venta **linea a linea**, haciendo una "invocacion" a la entidad VentaLinea se usa < notebook > < page string="Lineas de venta" > < field name="lineas_ids" >.<br>
+La etiqueta < field name="lineas_ids" > es sumamente importante,  pues es la clave foranea One2many en Ventas ( una venta ←→ muchas lineas venta) , esta permite abrir un formulario para **VentaLinea** , para poder ingresar los campos : proucto , precio, cantidad.<br>
+Ademas el nexo **lineas_ids** permiten que las **funciones de campos reactivos** vigilen los campos en el mismo formulario, se calcula el subtotal de acuerdo a cantidad precio (para cada linea), **subtotal = fields.Float(string="Subtotal",compute="_compute_subtotal")** de VentaLinea<br>
+Y en el mismo formulario el total **total = fields.Float(string="Total",compute="_compute_total")** de Ventas.<br>
+El campo **name=total** en form es el monitos donde se proyecta este cambio, si se borra esta etiqueta en el form de , los calculos seguirian procesandose pero no se mostraria en la pantalla.
+
+
+  
